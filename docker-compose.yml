@@ -1,0 +1,51 @@
+version: "3.2"
+
+services:
+  wordpress:
+    image: wordpress:latest
+    container_name: ${APP_NAME}-wordpress
+    restart: always
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_HOST: ${DB_HOST}:3306
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+    volumes:
+      - ./wordpress:/var/www/html
+
+  db:
+    platform: linux/x86_64
+    image: mysql:8.0
+    container_name: ${APP_NAME}-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - ./db:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${APP_NAME}-phpmyadmin
+    volumes:
+      - ./config/phpmyadmin.ini:/usr/local/etc/php/conf.d/phpmyadmin.ini
+    environment:
+      PMA_HOST: "${DB_HOST}"
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - wpsite
+
+volumes:
+  wordpress:
+  db:
+  phpmyadmin:
